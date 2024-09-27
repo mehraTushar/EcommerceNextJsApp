@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu as MenuIcon } from "lucide-react";
 import NavBarArr from "@/utils/config";
+import Link from "next/link";
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -21,15 +22,17 @@ export default function MobileNav() {
       <SheetContent side="left">
         <div className="flex flex-col items-start">
           {NavBarArr.map((item, index) => (
-            <Button
-              key={index}
-              variant="link"
-              onClick={() => {
-                setOpen(false);
-              }}
-            >
-              {item}
-            </Button>
+            <Link key={item.label} href={item.link}>
+              <Button
+                key={index}
+                variant="link"
+                onClick={() => {
+                  setOpen(false);
+                }}
+              >
+                {item.label}
+              </Button>
+            </Link>
           ))}
         </div>
       </SheetContent>
