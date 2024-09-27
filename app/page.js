@@ -1,5 +1,5 @@
 import Image from "next/image";
 
 export default function Home() {
-  return <div>EcommerceNextJsApp</div>;
+  return <h1>EcommerceNextJsApp</h1>;
 }
