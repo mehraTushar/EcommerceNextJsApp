@@ -1,9 +1,15 @@
+'use client';
 import Image from "next/image";
 import Link from "next/link";
-
+import { z } from 'zod'
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Swal from "sweetalert2";
+import axios from "axios";
 
 export const description =
   "A login page with two columns. The first column has the login form with email and password. There's a Forgot your passwork link and a link to sign up if you do not have an account. The second column has a cover image.";
@@ -12,7 +18,50 @@ export const iframeHeight = "800px";
 
 export const containerClassName = "w-full h-full p-4 lg:p-0";
 
+const Toast = Swal.mixin({
+  toast: true,
+  position: "top-end",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  }
+});
+
+const formSchema = z.object({
+  email: z.string().email({ message: "Invalid email address" }),
+  password: z
+  .string()
+  .min(8,{message:"Password must be at least 8 characters"} )
+  .regex(new RegExp('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$'), {
+      message:
+          'Password must be at least 8 characters and contain an uppercase letter, lowercase letter, and number'
+  }),
+})
+
+
+
 export default function Login() {
+  const router = useRouter()
+
+  const { register,reset, handleSubmit, watch, formState: { errors } } = useForm({resolver: zodResolver(formSchema)});
+
+  const onSubmit = (data) => {
+    console.log(data);
+    axios.post('http://localhost:5000/api/login', {email: data.email, password: data.password}).then(res => {
+      if(res.status === 200) {
+        reset();
+        router.push("/shop");
+      }
+    }).catch(err => {
+      console.error(err);
+    });
+  };
+
+
+
   return (
     <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[695px]">
       <div className="flex items-center justify-center">
@@ -23,38 +72,32 @@ export default function Login() {
               Enter your email below to login to your account
             </p>
           </div>
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="ml-auto inline-block text-sm underline"
-                >
-                  Forgot your password?
-                </Link>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="m@example.com" {...register("email")} />
+                {errors.email && <span>{errors.email.message}</span>}
               </div>
-              <Input id="password" type="password" required />
+              <div className="grid gap-2">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <Link href="/forgot-password" className="ml-auto inline-block text-sm underline">
+                    Forgot your password?
+                  </Link>
+                </div>
+                <Input id="password" type="password" {...register("password")}/>
+                {errors.password && <span>{errors.password.message}</span>}
+              </div>
+              <Button type="submit" className="w-full">Login</Button>
+              <Button variant="outline" className="w-full">
+                Login with Google
+              </Button>
             </div>
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-            <Button variant="outline" className="w-full">
-              Login with Google
-            </Button>
-          </div>
+          </form>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
-            <Link href="#" className="underline">
+            <Link href="/signup" className="underline">
               Sign up
             </Link>
           </div>

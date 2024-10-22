@@ -4,11 +4,28 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { zodValidator } from '@tanstack/zod-form-adapter'
 import { z } from 'zod'
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod"
 import axios from "axios";
+import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
+
+const Toast = Swal.mixin({
+  toast: true,
+  position: "top-end",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  }
+});
+
+
+
+
 
 export const description =
   "A login page with two columns. The first column has the login form with email and password. There's a Forgot your passwork link and a link to sign up if you do not have an account. The second column has a cover image.";
@@ -35,14 +52,18 @@ const formSchema = z.object({
 export const containerClassName = "w-full h-full p-4 lg:p-0";
 
 export default function Dashboard() {
+  const router = useRouter()
   const { register,reset, handleSubmit, watch, formState: { errors } } = useForm({resolver: zodResolver(formSchema)});
   const onSubmit = (data) => {
     console.log(data);
     axios.post('http://localhost:5000/api/signup', {fullName: data.fullName, email: data.email, password: data.password}).then(res => {
       if(res.status === 200) {
-        console.log(res);
-        alert("Account created successfully");
         reset();
+        Toast.fire({
+          icon: "success",
+          title: "Account created :)",
+        });
+        router.push("/login");
       }
     }).catch(err => {
       console.error(err);
@@ -94,7 +115,7 @@ export default function Dashboard() {
           </form>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
-            <Link href="#" className="underline">
+            <Link href="/login" className="underline">
               Login
             </Link>
           </div>
